@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:pbd_escolar/banco/banco_dados.dart';
+import 'package:pbd_escolar/interfaces/handler_interface.dart';
 import 'package:pbd_escolar/models/aluno.dart';
 import 'package:pbd_escolar/utils/parse_parameters.dart';
 import 'package:pbd_escolar/utils/response_formatter.dart';
@@ -8,9 +9,10 @@ import 'package:postgres/legacy.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-class AlunosHandler {
+class AlunosHandler extends HandlerInterface {
   BancoDados bancoDados = BancoDados.instance;
-  Router get router {
+  @override
+  Router get handler {
     final router = Router();
 
     router.get('/', _getAll);
@@ -23,7 +25,7 @@ class AlunosHandler {
 
     router.delete('/<id>', _getAluno);
 
-    router.all('/<ignored|.*>', _notFound);
+    router.all('/<ignored|.*>', notFound);
 
     return router;
   }
@@ -136,6 +138,4 @@ class AlunosHandler {
       return Response.internalServerError(body: 'Erro ao buscar alunos');
     }
   }
-
-  Response _notFound(Request request) => Response.notFound('Page not found');
 }
