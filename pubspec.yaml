@@ -1,0 +1,18 @@
+name: pbd_escolar
+description: A sample command-line application.
+version: 1.0.0
+
+environment:
+  sdk: ^3.1.5
+
+dependencies:
+  build_runner: ^2.4.6
+  intl: ^0.18.1
+  postgres: ^3.0.2
+  shelf: ^1.4.1
+  shelf_router: ^1.1.4
+
+
+dev_dependencies:
+  lints: ^2.0.0
+  test: ^1.21.0
