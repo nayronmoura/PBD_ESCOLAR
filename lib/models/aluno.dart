@@ -24,15 +24,13 @@ class AlunoModel implements IModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      "nome": nome,
-      "sobrenome": sobrenome,
-      "nascimento": nascimento,
-      "genero": genero,
-      "id": id,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        "nome": nome,
+        "sobrenome": sobrenome,
+        "nascimento": nascimento,
+        "genero": genero,
+        "id": id,
+      };
 
   static String getQuery() => """
   create table if not exists aluno(

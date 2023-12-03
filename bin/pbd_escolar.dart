@@ -1,5 +1,6 @@
 import 'package:pbd_escolar/banco/banco_dados.dart';
 import 'package:pbd_escolar/controllers/home_controller.dart';
+
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
@@ -9,7 +10,8 @@ Future<void> main(List<String> arguments) async {
     return HomeController().handler(request);
   });
 
-  var server = await shelf_io.serve(handler, 'localhost', 8080);
+  var server = await shelf_io.serve(handler, 'localhost', 8080,
+      poweredByHeader: "Powered by Nayron Moura");
 
   print('Servidor em http://${server.address.host}:${server.port}');
 }

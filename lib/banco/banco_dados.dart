@@ -1,5 +1,7 @@
 import 'package:pbd_escolar/interfaces/model_interface.dart';
 import 'package:pbd_escolar/models/aluno.dart';
+import 'package:pbd_escolar/models/aluno_turma.dart';
+import 'package:pbd_escolar/models/turma.dart';
 import 'package:postgres/postgres.dart';
 
 class BancoDados<T extends IModel> {
@@ -24,6 +26,8 @@ class BancoDados<T extends IModel> {
         settings: ConnectionSettings(sslMode: SslMode.disable));
 
     execute(AlunoModel.getQuery());
+    execute(TurmaModel.getQuery());
+    execute(AlunoTurmaModel.getQuery());
   }
 
   Future<bool> execute(String sql) async {
