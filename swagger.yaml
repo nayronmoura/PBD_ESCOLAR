@@ -1,0 +1,11 @@
+openapi: 3.0.0
+info:
+  description: "API para o sistema de controle escolar"
+  version: "1.0.10"
+  title: "API Escolar"
+servers:
+  - url: "http://localhost:8080"
+    description: "Localhost"
+tags:
+- name: "user"
+  description: "Access to User"

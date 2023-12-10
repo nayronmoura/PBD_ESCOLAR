@@ -23,10 +23,11 @@ class AlunoTurmaModel implements IModel {
   static String getQuery() => '''
       create table if not exists aluno_turma (
         id serial primary key,
-        id_aluno int not null,
+        id_aluno int not null ,
         id_turma int not null,
         foreign key (id_aluno) references aluno(id),
         foreign key (id_turma) references turma(id)
       );
     ''';
 }
+ 
