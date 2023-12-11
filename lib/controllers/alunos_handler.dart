@@ -9,7 +9,7 @@ import 'package:postgres/legacy.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-class AlunosHandler extends HandlerInterface {
+class AlunosHandler extends IHandler {
   BancoDados bancoDados = BancoDados.instance;
   @override
   Router get handler {
@@ -24,8 +24,6 @@ class AlunosHandler extends HandlerInterface {
     router.delete('/', _delete);
 
     router.get('/<id>', _getAluno);
-
-    router.all('/<ignored|.*>', notFound);
 
     return router;
   }
@@ -78,7 +76,7 @@ class AlunosHandler extends HandlerInterface {
       final id = data['id'];
       data.remove('id');
       await bancoDados.execute(
-          "update aluno set ${ParseParameters.parseParameters(data)}where id = $id");
+          "update aluno set ${ParseParameters.parseParameters(data)} where id = $id");
 
       return ResponseFormatter.sucess(message: 'Aluno atualizado com sucesso');
     } on PostgreSQLException catch (e) {

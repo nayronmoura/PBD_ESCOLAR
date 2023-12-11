@@ -8,7 +8,7 @@ import 'package:postgres/legacy.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-class TurmasAlunosHandler extends HandlerInterface {
+class TurmasAlunosHandler extends IHandler {
   BancoDados bancoDados = BancoDados.instance;
   @override
   Router get handler {
@@ -23,7 +23,7 @@ class TurmasAlunosHandler extends HandlerInterface {
     return router;
   }
 
-  Future<Response> _addAlunoTurma(Request request) async {
+  Future<Response> _addAlunoTurma(Request request, String turma) async {
     String body = await request.readAsString();
     try {
       final alunoTurma = AlunoTurmaModel.fromJson(jsonDecode(body));

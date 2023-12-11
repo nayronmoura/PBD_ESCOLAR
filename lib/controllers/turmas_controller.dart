@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:pbd_escolar/banco/banco_dados.dart';
+import 'package:pbd_escolar/controllers/materia_turma_handler.dart';
 import 'package:pbd_escolar/controllers/turmas_alunos_handdler.dart';
 import 'package:pbd_escolar/interfaces/handler_interface.dart';
 import 'package:pbd_escolar/models/turma.dart';
@@ -10,7 +11,7 @@ import 'package:postgres/legacy.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-class TurmasController extends HandlerInterface {
+class TurmasController extends IHandler {
   BancoDados bancoDados = BancoDados.instance;
 
   @override
@@ -26,10 +27,12 @@ class TurmasController extends HandlerInterface {
     router.delete('/', _delete);
 
     router.mount(
-        '/aluno', (request) async => TurmasAlunosHandler().handler(request));
+        '/alunos', (request) async => TurmasAlunosHandler().handler(request));
 
-    router.all('/<ignored|.*>', notFound);
+    router.mount(
+        '/materias', (request) async => MateriaTurma().handler(request));
 
+    router.get('/<idTurma>', _getId);
     return router;
   }
 
@@ -80,7 +83,7 @@ class TurmasController extends HandlerInterface {
       final id = data['id'];
       data.remove('id');
       await bancoDados.execute(
-          "update turma set ${ParseParameters.parseParameters(data)}where id = $id");
+          "update turma set ${ParseParameters.parseParameters(data)} where id = $id");
 
       return ResponseFormatter.sucess(message: 'turma atualizado com sucesso');
     } on PostgreSQLException catch (e) {
@@ -125,6 +128,43 @@ class TurmasController extends HandlerInterface {
     } catch (e) {
       return ResponseFormatter.internalError(
           message: "Erro ao salvar turma, tente novamente");
+    }
+  }
+
+  Future<Response> _getId(Request request, String id) async {
+    try {
+      if (id.isEmpty || int.tryParse(id) == null) {
+        return ResponseFormatter.badRequest(message: 'Informe o id da turma');
+      }
+      final turmaMap = await bancoDados.query("""
+      SELECT 
+        turma.id AS id_turma,
+        turma.nome AS turma_nome,
+        json_agg(aluno.*) AS alunos,
+        json_agg(materia.*) AS materias
+      FROM aluno_turma
+      INNER JOIN aluno ON aluno_turma.id_aluno = aluno.id
+      INNER JOIN turma ON aluno_turma.id_turma = turma.id
+      LEFT JOIN LATERAL (
+        SELECT materia.id, materia.nome 
+        FROM materia_turma 
+        INNER JOIN materia ON materia_turma.id_materia = materia.id 
+        WHERE materia_turma.id_turma = turma.id
+      ) materia ON true
+      WHERE turma.id = $id
+      GROUP BY turma.id, turma.nome
+      ORDER BY turma.nome;
+      """);
+
+      final turmaModel = turmaMap.first;
+      return ResponseFormatter.sucess(message: {
+        'id': turmaModel['id_turma'],
+        'nome': turmaModel['turma_nome'],
+        'alunos': turmaModel['alunos'],
+        'materias': turmaModel['materias']
+      });
+    } catch (e) {
+      return ResponseFormatter.internalError(message: 'Erro ao buscar turmas');
     }
   }
 }
