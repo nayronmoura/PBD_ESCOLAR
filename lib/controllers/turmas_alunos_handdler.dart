@@ -23,7 +23,7 @@ class TurmasAlunosHandler extends IHandler {
     return router;
   }
 
-  Future<Response> _addAlunoTurma(Request request, String turma) async {
+  Future<Response> _addAlunoTurma(Request request) async {
     String body = await request.readAsString();
     try {
       final alunoTurma = AlunoTurmaModel.fromJson(jsonDecode(body));
