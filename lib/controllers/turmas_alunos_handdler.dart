@@ -14,11 +14,9 @@ class TurmasAlunosHandler extends IHandler {
   Router get handler {
     final router = Router();
 
-    router.post('/', _addAlunoTurma);
-    router.get('/<id>', _getAlunoTurma);
-    router.delete('/', _delete);
-
-    router.all('/<ignored|.*>', notFound);
+    router.post('/alunos', _addAlunoTurma);
+    router.get('/<id>/alunos', _getAlunoTurma);
+    router.delete('/<idTurma>/alunos/<idAluno>', _delete);
 
     return router;
   }
@@ -32,8 +30,8 @@ class TurmasAlunosHandler extends IHandler {
             message: "Erro ao adicionar aluno, verifique os dados enviados");
       }
 
-      final count = await bancoDados
-          .query("select count(*) from aluno where id = ${alunoTurma.idAluno}");
+      final count = await bancoDados.query(
+          "select count(*) from aluno_turma where id_aluno = ${alunoTurma.idAluno}");
 
       if (count.first['count'] > 0) {
         return ResponseFormatter.badRequest(
@@ -67,16 +65,13 @@ class TurmasAlunosHandler extends IHandler {
       if (id.isEmpty || int.tryParse(id) == null) {
         return ResponseFormatter.badRequest(message: 'Informe o id da turma');
       }
-      final alunoTurmaMap = await bancoDados.query("""SELECT 
-      turma.id AS id_turma,
-      turma.nome AS turma_nome,
-      json_agg(aluno.*) AS alunos
-      FROM aluno_turma
-      INNER JOIN aluno ON aluno_turma.id_aluno = aluno.id
-      INNER JOIN turma ON aluno_turma.id_turma = turma.id
-      WHERE turma.id = $id
-      GROUP BY turma.id, turma.nome
-      ORDER BY turma.nome;""");
+      final alunoTurmaMap = await bancoDados.query("""
+        SELECT 
+            aluno.*
+        FROM aluno_turma
+        INNER JOIN aluno ON aluno_turma.id_aluno = aluno.id
+        WHERE aluno_turma.id_turma = $id
+      """);
 
       return ResponseFormatter.sucess(message: alunoTurmaMap);
     } catch (e) {
@@ -85,16 +80,32 @@ class TurmasAlunosHandler extends IHandler {
     }
   }
 
-  Future<Response> _delete(Request request) async {
-    final parameters = request.url.queryParameters;
+  Future<Response> _delete(
+      Request request, String idTurma, String idAluno) async {
     try {
-      if (parameters['id_aluno'] == null || parameters['id_turma'] == null) {
+      if (int.tryParse(idAluno) == null || int.tryParse(idTurma) == null) {
         return ResponseFormatter.badRequest(
             message: "Erro ao remover aluno, verifique os dados enviados");
       }
 
+      final countTurma = await bancoDados
+          .query("select count(*) from turma where id = $idAluno");
+
+      if (countTurma.first['count'] == 0) {
+        return ResponseFormatter.badRequest(
+            message: "Erro ao remover aluno, turma não existe");
+      }
+
+      final count = await bancoDados.query(
+          "select count(*) from aluno_turma where id_aluno = $idAluno and id_turma = $idTurma");
+
+      if (count.first['count'] == 0) {
+        return ResponseFormatter.badRequest(
+            message: "Erro ao remover aluno, aluno não cadastrado");
+      }
+
       await bancoDados.execute(
-          "delete from aluno_turma where id_aluno = ${parameters["id_aluno"]} and id_turma = ${parameters["id_turma"]}");
+          "delete from aluno_turma where id_aluno = $idAluno and id_turma = $idTurma");
 
       return ResponseFormatter.sucess(message: 'Aluno removido com sucesso');
     } on FormatException {

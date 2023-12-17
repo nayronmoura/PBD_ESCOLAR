@@ -17,7 +17,7 @@ class MateriaHandler extends IHandler {
     router.get('/', _getMateria);
     router.post('/', _create);
     router.put('/', _put);
-    router.delete('/', _delete);
+    router.delete('/<id>', _delete);
 
     return router;
   }
@@ -88,16 +88,15 @@ class MateriaHandler extends IHandler {
     }
   }
 
-  Future<Response> _delete(Request request) async {
+  Future<Response> _delete(Request request, String id) async {
     String body = await request.readAsString();
 
     try {
-      final Map<String, dynamic> data = jsonDecode(body);
-      if (data['id'] == null) {
+      if (id.isEmpty || int.tryParse(id) == null) {
         return ResponseFormatter.badRequest(
             message: "é necessário informar o id do materia");
       }
-      await bancoDados.execute("delete from materia where id = ${data['id']}");
+      await bancoDados.execute("delete from materia where id = $id");
       return ResponseFormatter.sucess(message: 'materia deletado com sucesso');
     } on PostgreSQLException catch (e) {
       if (e.message

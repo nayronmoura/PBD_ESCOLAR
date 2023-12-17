@@ -21,7 +21,7 @@ class AlunosHandler extends IHandler {
 
     router.put('/', _put);
 
-    router.delete('/', _delete);
+    router.delete('/<id>', _delete);
 
     router.get('/<id>', _getAluno);
 
@@ -96,16 +96,13 @@ class AlunosHandler extends IHandler {
     }
   }
 
-  Future<Response> _delete(Request request) async {
-    String body = await request.readAsString();
-
+  Future<Response> _delete(Request request, String id) async {
     try {
-      final Map<String, dynamic> data = jsonDecode(body);
-      if (data['id'] == null) {
+      if (id.isEmpty || int.tryParse(id) == null) {
         return ResponseFormatter.badRequest(
             message: "é necessário informar o id do aluno");
       }
-      await bancoDados.execute("delete from aluno where id = ${data['id']}");
+      await bancoDados.execute("delete from aluno where id = $id");
       return ResponseFormatter.sucess(message: 'Aluno deletado com sucesso');
     } on PostgreSQLException catch (e) {
       if (e.message

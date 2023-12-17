@@ -24,15 +24,14 @@ class TurmasController extends IHandler {
 
     router.put('/', _put);
 
-    router.delete('/', _delete);
+    router.delete('/<id>', _delete);
 
-    router.mount(
-        '/alunos', (request) async => TurmasAlunosHandler().handler(request));
+    router.get('/<id>', _getId);
 
-    router.mount(
-        '/materias', (request) async => MateriaTurma().handler(request));
+    router.mount('/', TurmasAlunosHandler().handler);
 
-    router.get('/<idTurma>', _getId);
+    router.mount('/', MateriaTurma().handler);
+
     return router;
   }
 
@@ -103,31 +102,23 @@ class TurmasController extends IHandler {
     }
   }
 
-  Future<Response> _delete(Request request) async {
-    String body = await request.readAsString();
-
+  Future<Response> _delete(Request request, String id) async {
     try {
-      final Map<String, dynamic> data = jsonDecode(body);
-      if (data['id'] == null) {
+      if (id.isEmpty || int.tryParse(id) == null) {
         return ResponseFormatter.badRequest(
             message: "é necessário informar o id do turma");
       }
-      await bancoDados.execute("delete from turma where id = ${data['id']}");
+      await bancoDados.execute("delete from turma where id = $id");
       return ResponseFormatter.sucess(message: 'turma deletado com sucesso');
-    } on PostgreSQLException catch (e) {
-      if (e.message
-          .contains("duplicate key value violates unique constraint")) {
-        return ResponseFormatter.badRequest(
-            message: "Erro ao salvar turma, turma já existe");
-      }
+    } on PostgreSQLException {
       return ResponseFormatter.badRequest(
-          message: "Erro ao salvar turma, tente novamente");
+          message: "Erro ao deletar turma, tente novamente");
     } on FormatException {
       return ResponseFormatter.badRequest(
-          message: "Erro ao salvar turma, verifique os dados");
+          message: "Erro ao deletar turma, verifique os dados");
     } catch (e) {
       return ResponseFormatter.internalError(
-          message: "Erro ao salvar turma, tente novamente");
+          message: "Erro ao deletar turma, tente novamente");
     }
   }
 
@@ -137,24 +128,28 @@ class TurmasController extends IHandler {
         return ResponseFormatter.badRequest(message: 'Informe o id da turma');
       }
       final turmaMap = await bancoDados.query("""
-      SELECT 
-        turma.id AS id_turma,
-        turma.nome AS turma_nome,
-        json_agg(aluno.*) AS alunos,
-        json_agg(materia.*) AS materias
-      FROM aluno_turma
-      INNER JOIN aluno ON aluno_turma.id_aluno = aluno.id
-      INNER JOIN turma ON aluno_turma.id_turma = turma.id
-      LEFT JOIN LATERAL (
-        SELECT materia.id, materia.nome 
-        FROM materia_turma 
-        INNER JOIN materia ON materia_turma.id_materia = materia.id 
-        WHERE materia_turma.id_turma = turma.id
-      ) materia ON true
-      WHERE turma.id = $id
-      GROUP BY turma.id, turma.nome
-      ORDER BY turma.nome;
+        SELECT 
+            turma.id AS id_turma,
+            turma.nome AS turma_nome,
+            json_agg(aluno.*) AS alunos,
+            json_agg(materia.*) AS materias
+        FROM turma
+        LEFT JOIN aluno_turma ON turma.id = aluno_turma.id_turma
+        LEFT JOIN aluno ON aluno_turma.id_aluno = aluno.id
+        LEFT JOIN LATERAL (
+            SELECT materia.id, materia.nome 
+            FROM materia_turma 
+            INNER JOIN materia ON materia_turma.id_materia = materia.id 
+            WHERE materia_turma.id_turma = turma.id
+        ) materia ON true
+        WHERE turma.id = 1
+        GROUP BY turma.id, turma.nome
+        ORDER BY turma.nome;
       """);
+
+      if (turmaMap.isEmpty) {
+        ResponseFormatter.badRequest(message: 'Turma não encontrada');
+      }
 
       final turmaModel = turmaMap.first;
       return ResponseFormatter.sucess(message: {

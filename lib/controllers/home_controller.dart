@@ -9,13 +9,11 @@ class HomeController extends IHandler {
   Router get handler {
     final router = Router(notFoundHandler: notFound);
 
-    router.mount(
-        "/alunos", (request) async => AlunosHandler().handler(request));
+    router.mount("/aluno", AlunosHandler().handler);
 
-    router.mount(
-        "/turmas", (request) async => TurmasController().handler(request));
+    router.mount("/turma", TurmasController().handler);
 
-    router.mount('/materia', (request) => MateriaHandler().handler(request));
+    router.mount('/materia', MateriaHandler().handler);
 
     return router;
   }

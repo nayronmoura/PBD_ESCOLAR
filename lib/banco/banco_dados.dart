@@ -21,7 +21,7 @@ class BancoDados<T extends IModel> {
     conn = await Connection.open(
         Endpoint(
           host: 'localhost',
-          database: 'pbd_escolar',
+          database: 'fbd_escolar',
           username: 'postgres',
           password: 'postgres',
         ),
