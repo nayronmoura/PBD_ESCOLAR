@@ -5,18 +5,15 @@ import 'package:shelf/shelf.dart';
 
 class ResponseFormatter {
   static Response sucess({required dynamic message}) {
-    return Response.ok(
-      jsonEncode({'status': 'sucess', 'message': message}),
-      headers: {
-        'Content-Type':
-            ContentType('application', 'json', charset: 'utf-8').toString()
-      },
-    );
+    return Response.ok(jsonEncode({'result': message}), headers: {
+      'Content-Type':
+          ContentType('application', 'json', charset: 'utf-8').toString()
+    });
   }
 
   static Response internalError({required String message}) {
     return Response.internalServerError(
-        body: jsonEncode({'status': 'error', 'message': message}),
+        body: jsonEncode({'result': message}),
         headers: {
           'Content-Type':
               ContentType('application', 'json', charset: 'utf-8').toString()
@@ -24,22 +21,16 @@ class ResponseFormatter {
   }
 
   static Response badRequest({required String message}) {
-    return Response.badRequest(
-      body: jsonEncode({'status': 'error', 'message': message}),
-      headers: {
-        'Content-Type':
-            ContentType('application', 'json', charset: 'utf-8').toString()
-      },
-    );
+    return Response.badRequest(body: jsonEncode({'result': message}), headers: {
+      'Content-Type':
+          ContentType('application', 'json', charset: 'utf-8').toString()
+    });
   }
 
   static Response forbidden({required String message}) {
-    return Response.forbidden(
-      jsonEncode({'status': 'error', 'message': message}),
-      headers: {
-        'Content-Type':
-            ContentType('application', 'json', charset: 'utf-8').toString()
-      },
-    );
+    return Response.forbidden(jsonEncode({'result': message}), headers: {
+      'Content-Type':
+          ContentType('application', 'json', charset: 'utf-8').toString()
+    });
   }
 }

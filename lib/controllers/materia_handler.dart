@@ -89,8 +89,6 @@ class MateriaHandler extends IHandler {
   }
 
   Future<Response> _delete(Request request, String id) async {
-    String body = await request.readAsString();
-
     try {
       if (id.isEmpty || int.tryParse(id) == null) {
         return ResponseFormatter.badRequest(
